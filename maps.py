@@ -55,12 +55,15 @@ def center_map(lons,lats,scale):
        Assumes -90 < Lat < 90 and -180 < Lon < 180, and
        latitude and logitude are in decimal degrees'''
 
+    import numpy as np
+    import pyproj
+
     # TODO add cond to set width to either pythag or direct width
 
-    north_lat = max(lats)
-    south_lat = min(lats)
-    west_lon = max(lons)
-    east_lon = min(lons)
+    north_lat = np.max(lats)
+    south_lat = np.min(lats)
+    west_lon =  np.max(lons)
+    east_lon =  np.min(lons)
 
     # find center of data
     # average between max and min longitude
@@ -85,4 +88,4 @@ def center_map(lons,lats,scale):
     # distance between max E and W longitude at most southern latitude
     mapW = g.inv(west_lon, south_lat, east_lon, south_lat)[2]
 
-    return lat0, mapH, mapW
+    return lon0, lat0, mapW, mapH
