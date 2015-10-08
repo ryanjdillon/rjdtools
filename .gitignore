@@ -1,2 +1,6 @@
 # bin files
 *.pyc
+
+# swap files
+*.swp
+*~
