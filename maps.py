@@ -1,4 +1,56 @@
-def plotimage(filename, mapobject, x, y):
+
+def get_mapcolors():
+    '''Returns dictionary of default basemap colors'''
+    return {'land':'#c5c5c5', 'ocean':'#ffffff', 'lakes':'#ffffff',
+            'parallels':'#d6d6d6', 'meridians':'#d6d6d6'}
+
+def draw_basemap(ax, map_props, map_colors, res='l'):
+    '''Generate a basemap
+
+    Args:
+        ax: matplotlib.pyplot ax object
+        map_props (dict): {'lon0':lon0, 'lat0':lat0, 'mapW':mapW, 'mapH':mapH}
+        map_colors: {'land': c1, 'ocean': c2, 'lakes': c3,
+                     'parallels': c4, 'meridians': c5}
+        res (str): resolution of basemap, where 'l'=low, 'i'=intermediate,
+          'h'=high, 'f'= fine
+
+    Returns:
+        m: matplotlib basemap object'''
+
+    from mpl_toolkits.basemap import Basemap
+    import numpy as np
+    import pyproj
+
+    # Define ellipsoid object
+    g = pyproj.Geod(ellps='WGS84')
+    r_equator = g.a
+    r_poles = g.b
+
+    # Basemap projection
+    m = Basemap(width=map_props['mapW'],height=map_props['mapH'],
+                rsphere=(r_equator, r_poles),\
+                resolution=res, projection='laea',\
+                lat_ts=map_props['lat0'],\
+                lat_0=map_props['lat0'],lon_0=map_props['lon0'], ax=ax)
+
+    # Draw parallels and meridians
+    m.drawparallels(np.arange(-80.,81.,5.), labels=[1,0,0,0], fontsize=10,
+                    linewidth=0.5, dashes=(None,None),
+                    color=map_colors['parallels'])
+
+    m.drawmeridians(np.arange(-180.,181.,10.), labels=[0,0,0,1], fontsize=10,
+                    linewidth=0.5, dashes=(None,None),
+                    color=map_colors['meridians'])
+
+    m.drawmapboundary(fill_color=map_colors['ocean'])
+
+    m.fillcontinents(color=map_colors['land'], lake_color=map_colors['lakes'])
+
+    return m
+
+
+def plot_image(filename, mapobject, x, y):
     '''Plot image to map_object'''
 
     import Image
@@ -49,11 +101,18 @@ def draw_mesh(ax, x, y, vals, plt_alpha, cmap):
     return ax.pcolormesh(x, y, vals, vmin=1.)#, cmap=cmap)#, alpha=plt_alpha)
 
 
-def center_map(lons,lats,scale):
+def center_basemap(lons, lats, scale, return_dict=True):
     '''Automatically determin dimensions of map.
 
        Assumes -90 < Lat < 90 and -180 < Lon < 180, and
-       latitude and logitude are in decimal degrees'''
+       latitude and logitude are in decimal degrees
+
+       Args:
+           lons:
+           lats:
+           scale (float):
+           return_dict (bool):
+    '''
 
     import numpy as np
     import pyproj
@@ -88,4 +147,11 @@ def center_map(lons,lats,scale):
     # distance between max E and W longitude at most southern latitude
     mapW = g.inv(west_lon, south_lat, east_lon, south_lat)[2]
 
-    return lon0, lat0, mapW, mapH
+    # scale map dimensions
+    mapW = mapW*scale
+    mapH = mapH*scale
+
+    if return_dict == True:
+        return {'lon0':lon0, 'lat0':lat0, 'mapW':mapW, 'mapH':mapH}
+    else:
+        return lon0, lat0, mapW, mapH
