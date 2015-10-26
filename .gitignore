@@ -1,0 +1,6 @@
+#swap
+*.swp
+
+#bin
+*.bin
+*.pyc
